@@ -183,3 +183,5 @@ tk.title("pixdec")
 start_game()
 # игровой цикл
 tk.mainloop()
+#Проверочка
+
