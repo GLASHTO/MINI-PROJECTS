@@ -127,13 +127,11 @@ class Snake(object):
                     if head_coord == c.coords(self.s[index].crt):
                         game = False
 
-            c.after(10, self.main())
+
 
         # движение змейки - основное
 
-        else:
-            after_die()
-            c.update()
+
 
 
 # что будет при проигрыше
@@ -152,7 +150,10 @@ def start_game():
     sn = Snake(Ssnake)
     apple()
     sn.buttons()
-    sn.main()
+    while game:
+        c.after(10, sn.main())
+    after_die()
+    c.update()
 
 
 # холст и экран
