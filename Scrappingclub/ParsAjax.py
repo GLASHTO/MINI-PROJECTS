@@ -1,7 +1,8 @@
-#импортируем библиотеки
+# импортируем библиотеки
 import requests
 from bs4 import BeautifulSoup
-#заголовок отправляемый сайту
+
+# заголовок отправляемый сайту
 headers = {
     'authority': 'scrapingclub.com',
     'method': 'GET',
@@ -22,43 +23,53 @@ headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36',
     'x-requested-with': 'XMLHttpRequest'
 }
-#список в который будет ложится вся информация
+# список в который будет ложится вся информация
 info = []
-#функция принимаюшая адрес и номер страницы с которой начнется парсинг
+
+
+# функция принимаюшая адрес и номер страницы с которой начнется парсинг
 def soupy(url, page=1):
-    #обработчик ошибок 
+    # обработчик ошибок
     try:
         while True:
-          #если это не первая стр. задаем в параметры ссылки новый параметр
+            # если это не первая стр. задаем в параметры ссылки новый параметр
             if page != 1:
-                params = {'page': page}
-                req = requests.get(url=url, headers=headers, params=params)
-                page += 1
                 print(page)
-#тут будет изменение : если в главном списке есть этот список то код останавливается
+                params = {'page': page}
+                req = requests.get(url=f'https://scrapingclub.com/exercise/list_infinite_scroll/',
+                                   headers=headers, params=params)
+                page += 1
+                # если дойдет до 7-ой стр. ,то стоп
                 if page == 7:
-                    return 'done'
-#иначе если это первая страница делаем запрос и переходим на следующюю
+                    return info
+                # доработать если будет время
+                # if info not in data:
+                #     print(info)
+                #     data.append(info)
+                #     info.clear()
+                # else:
+                #     return data
+            # иначе если это первая страница делаем запрос и переходим на следующюю
             else:
                 req = requests.get(url=url, headers=headers)
-                page += 1
                 print(page)
+                page += 1
 
-            #сохраняем первоначальную стр.
+            # сохраняем первоначальную стр.
             with open('jopa.html', 'w', encoding='utf-8') as f:
                 f.write(req.text)
-            #читаем файл и сохраняем данные в переменную src
+            # читаем файл и сохраняем данные в переменную src
             with open('jopa.html', encoding='utf-8') as f:
                 src = f.read()
-            #даем обработать BeautifulSoup , с помощью парсера lxml
+            # даем обработать BeautifulSoup , с помощью парсера lxml
             soup = BeautifulSoup(src, 'lxml')
-            #ищем ссылку для захода в карточку 
+            # ищем ссылку для захода в карточку
             href = soup.find_all('div', class_='card')
 
-            #функцию чтобы обработать и вывести данные с json файла
+            # функцию чтобы обработать и вывести данные с json файла
             def rylka():
-
-#цикл с окончательным поискаом ссылки захода и получения необходимых данных
+                print("в процессе...")
+                # цикл с окончательным поискаом ссылки захода и получения необходимых данных
                 for link in href:
                     click = link.find('a').get('href')
                     json_file = click.split('/')
@@ -67,42 +78,40 @@ def soupy(url, page=1):
                     req2 = requests.get(
                         f'https://scrapingclub.com/exercise/list_detail_ajax_infinite_scroll/{page_of_card}/',
                         headers=headers)
-#если данные кончились то выводим список и выходии функции возвращая значение 'done'
+                    # если данные кончились то выводим список и выходии функции возвращая значение 'done'
                     if req2.status_code == 500:
-                        print(req2.status_code)
-                        print(info)
-                        return 'done'
-#получаемые данные в формате json
+                        return 'переход на следующую страницу'
+                    # получаемые данные в формате json
                     content = req2.json()
                     # print(content)
-#необходимые данные 
+                    # необходимые данные
                     img_path = f"https://scrapingclub.com{content['img_path']}"
                     price = content['price']
                     title = content['title']
+                    # добавляем данные в список info
 
-                    #
-#добавляем данные во второстепенный 
                     info.append({'title': title,
-                                     'price': price,
-                                     'image': img_path
-                                     })
-                    
+                                 'price': price,
+                                 'image': img_path
+                                 })
+                    # print(info)
 
-
-
-#вызываем функицю для парсинга с открываемой ссылки
+            # вызываем функицю для парсинга с открываемой ссылки
             rylka()
-#либо при ошибке , либо при "done"
+    # либо при ошибке , либо при "done"
     except Exception as ex:
         print('Парсинг всё')
         print(ex)
-        #при окончании функции 
+    # при окончании функции
     finally:
         print('Аллилуя)))')
 
-#главная функция
+
+# главная функция
 def main():
-  soupy(f'https://scrapingclub.com/exercise/list_infinite_scroll/')
-  #точка входа 
-if name=='__main__':
-  main() 
+    print(soupy('https://scrapingclub.com/exercise/list_infinite_scroll/'))
+
+
+# точка входа
+if __name__ == '__main__':
+    main()
