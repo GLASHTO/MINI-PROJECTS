@@ -10,7 +10,13 @@ import json
 import sqlite3  # , re ,random
 
 storage = MemoryStorage()
+db_nfc = sqlite3.connect('nfc.db')
+db_admin = sqlite3.connect('admin.db')
+db_vid = sqlite3.connect('video.db')
 
+cur_nfc = db_nfc.cursor()
+cur_admin = db_admin.cursor()
+cur_vid = db_vid.cursor()
 # текста и данные
 text_for_start = 'Это главный асинхронный(пока на async/await(какой же я лошара)) Бот-отец ,который будет с ' \
                  'младшими ботами ,пока не знаю как и даже не представляю чего хочу но будет интересно .Будем ' \
@@ -35,6 +41,21 @@ dp = Dispatcher(bot, storage=storage)
 
 # то что происходит перед стартом бота
 def on_startup():
+    cur_vid.execute('''CREATE TABLE IF NOT EXISTS video_id(
+    video TEXT
+    )
+    ''')
+    cur_admin.execute('''CREATE TABLE IF NOT EXISTS admin_info(
+    trial_write VARCHAR)
+    ''')
+    cur_nfc.execute('''CREATE TABLE IF NOT EXISTS nfc_info(
+    name VARCHAR,
+    photo TEXT,
+    description TEXT
+    )''')
+    db_admin.commit()
+    db_vid.commit()
+    db_nfc.commit()
     print('Холо проснулась ,услужи ей)')
 
 
@@ -162,6 +183,9 @@ async def description(msg: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['description'] = msg.text
     await msg.reply("LOAD...")
+    cur_nfc.execute('''INSERT INTO nfc_info VALUES (?,?,?)
+    ''', tuple(data.values()))
+    db_nfc.commit()
     await state.finish()
 
 
@@ -182,7 +206,7 @@ async def get_the_videos(msg: types.Message, state: FSMContext):
         await bot.send_message(msg.from_user.id, f'video loaded, ID:\n{data["video"]}')
 
 
-@dp.message_handler(lambda msg: msg.text == "DONE", state= For_vid.vid)
+@dp.message_handler(lambda msg: msg.text == "DONE", state=For_vid.vid)
 async def finish_loading(msg: types.Message, state=FSMContext):
     await msg.answer('all videos loaded')
     await state.finish()
