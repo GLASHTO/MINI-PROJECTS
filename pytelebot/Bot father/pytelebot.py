@@ -39,6 +39,11 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=storage)
 
 
+async def get_data(msg, db, table):
+    for data in db.execute(f'SELECT * FROM {table}').fetchall():
+        await bot.send_message(msg.from_user.id, data[0])
+
+
 # то что происходит перед стартом бота
 def on_startup():
     cur_vid.execute('''CREATE TABLE IF NOT EXISTS video_id(
@@ -164,11 +169,15 @@ async def name_of_the_nfc(msg: types.Message, state: FSMContext):
     await msg.reply('send the photo for the NFC')
 
 
+arr_with_photo = []
+
+
 @dp.message_handler(content_types=['photo'], state=FSMNFC.photo)
 async def photo_for_the_nfc(msg: types.Message, state: FSMContext):
     await msg.answer('for end ,click DONE ')
+    # разобраться в базах данных ,чтобы уметь ложить массивы в таблицу
     async with state.proxy() as data:
-        data['photo'] = [].append(msg.photo[0].file_id)
+        data['photo'] = msg.photo[0].file_id
         # data= {'name':msg.photo}
 
 
@@ -203,13 +212,31 @@ async def load_video(msg: types.Message):
 async def get_the_videos(msg: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['video'] = msg.video.file_id
+        cur_vid.execute('''INSERT INTO video_id VALUES(?)''', tuple(data.values()))
+        db_vid.commit()
         await bot.send_message(msg.from_user.id, f'video loaded, ID:\n{data["video"]}')
 
 
 @dp.message_handler(lambda msg: msg.text == "DONE", state=For_vid.vid)
-async def finish_loading(msg: types.Message, state=FSMContext):
+async def finish_loading(msg: types.Message, state: FSMContext):
     await msg.answer('all videos loaded')
     await state.finish()
+
+
+@dp.message_handler(Text(equals='nfc_info', ignore_case=True))
+async def get_nfc_info(msg: types.Message):
+    await get_data(msg=msg, db=db_nfc, table='nfc_info')
+
+
+@dp.message_handler(Text(equals='admin_info', ignore_case=True))
+async def get_nfc_info(msg: types.Message):
+    await get_data(msg=msg, db=db_admin, table='admin_info')
+
+
+@dp.message_handler(Text(equals='vid_id', ignore_case=True))
+async def get_nfc_info(msg: types.Message):
+    for data in db_vid.execute(f'SELECT * FROM video_id').fetchall():
+        await bot.send_video(msg.from_user.id, data[0])
 
 
 # Админ
@@ -223,17 +250,30 @@ class FSMNAdmin(StatesGroup):
 # как пример проверки является ли пользователь админом,  метод  is_chat_admin при передаче true ,
 # проверяет являтся ли пользователь написавший команду - админом
 # важное дополнение - проверка работает только если сообщение отправлено в чат
-@dp.message_handler(lambda msg: msg.text.lower() == 'admin_try', is_chat_admin=True, state=FSMNAdmin.trial_write)
+@dp.message_handler(lambda msg: msg.text.lower() == 'admin_try', is_chat_admin=True, state=None)
 async def trial_write_admin(msg: types.Message, state: FSMContext):
     global admin_id
     await bot.send_message(msg.from_user.id, 'yes_sir?')
     await msg.delete()
     admin_id = msg.from_user.id
     if msg.from_user.id == admin_id:
+        await FSMNAdmin.trial_write.set()
+
+
+@dp.message_handler(state=FSMNAdmin.trial_write)
+async def try_ad(msg: types.Message, state: FSMContext):
+    if msg.from_user.id == admin_id:
         async with state.proxy() as data:
-            data['admin_id'] = msg.from_user.id
-        await bot.send_message(msg.from_user.id, f'Admin ID:\n{admin_id}')
+            data['admin_id'] = admin_id
+        cur_admin.execute('''INSERT INTO admin_info VALUES(?)''', tuple(data.values()))
+        db_admin.commit()
+
+
+@dp.message_handler()
+async def ad_try_end(msg: types.Message, state: FSMContext):
+    if msg.from_user.id == admin_id:
         await state.finish()
+        await bot.send_message(msg.from_user.id, f'Admin ID:\n{admin_id}')
 
 
 # пустой хэндлер всегда внизу, иначе он будет перехватывать сообщения и команды не будут исполняться
