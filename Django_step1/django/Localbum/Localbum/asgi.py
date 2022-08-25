@@ -1,5 +1,5 @@
 """
-ASGI config for Localbum project.
+ASGI configuration for Localbum project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

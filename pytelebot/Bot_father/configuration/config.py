@@ -1,0 +1,2 @@
+#ТОКЕН БОТА
+TOKEN = '2001852541:AAGNXaOYmaoyBDZDhj3JDZc74zsRooqIGvc'
