@@ -1,11 +1,13 @@
 from aiogram.utils import executor
-from create_bot import dp
-from db import db_vid, db_admin, db_nfc, cur_nfc, cur_admin, cur_vid
+from create_bot import *
+from db.data_sql import db_vid, db_admin, db_nfc, cur_nfc, cur_admin, cur_vid
+from keyboards.inline_keyboard import inline_kb
 from handlers import admin
-from handlers import user
+from handlers.user import video
+from handlers.user import nfc
+from handlers.user import user
+from handlers import mat_filter
 from handlers import other
-
-
 # то что происходит перед стартом бота
 def on_startup():
     cur_vid.execute('''CREATE TABLE IF NOT EXISTS video_id(
@@ -27,8 +29,14 @@ def on_startup():
 
 
 # регистрация хэндлеров, модуль с пустым хэндлером также расположен снизу
-admin.register_admin_handlers(dp)
+
 user.register_user_handlers(dp)
+nfc.register_nfc_handlers(dp)
+video.register_video_handler(dp)
+inline_kb.register_inline_kb_handlers(dp)
 other.register_other_handlers(dp)
+admin.register_admin_handlers(dp)
+mat_filter.register_mat_handler(dp)
+
 
 executor.start_polling(dp, skip_updates=True, on_startup=on_startup())

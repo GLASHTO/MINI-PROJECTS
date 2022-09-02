@@ -1,8 +1,9 @@
-from create_bot import bot, dp
+from create_bot import bot
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram import Dispatcher
+from db.data_sql import cur_admin, db_admin
 # Админ
 admin_id = None
 
@@ -41,5 +42,5 @@ async def ad_try_end(msg: types.Message, state: FSMContext):
 
 def register_admin_handlers(dp:Dispatcher):
     dp.register_message_handler(trial_write_admin,lambda msg: msg.text.lower() == 'admin_try', is_chat_admin=True, state=None)
-    dp.register_message_handler(try_ad,state=FSMNAdmin.trial_write)
+    dp.register_message_handler(try_ad,content_types=['text'],state=FSMNAdmin.trial_write)
     dp.register_message_handler(ad_try_end,state=None)

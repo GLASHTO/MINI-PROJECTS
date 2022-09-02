@@ -18,9 +18,17 @@ delete = KeyboardButton('delete_keyboard')
 
 # вызов инлайн клавиатуры
 inline_keyboard = KeyboardButton(text='inline_kb')
+# nfc
+nfc_start = KeyboardButton('pls_new_nfc')
+# video load
+video_start = KeyboardButton('load_the_video')
+# admin
+admin_start = KeyboardButton('admin_try1')
 
 start_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-start_keyboard.add(possibility).row(one_time_keyboard_button, inline_keyboard).row(number, geo).row(delete, start)
+start_keyboard.add(possibility).row(one_time_keyboard_button, inline_keyboard).row(number, geo).row(nfc_start,
+                                                                                                    video_start,admin_start).row(
+    delete, start)
 # одноразовая клавиатура
 hide_keyboard = KeyboardButton('hide')
 back_to_normalkey = KeyboardButton('back')

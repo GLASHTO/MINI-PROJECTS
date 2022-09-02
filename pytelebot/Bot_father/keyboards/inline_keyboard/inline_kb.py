@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.types import InlineKeyboardButton
+from aiogram import Dispatcher
 from aiogram import types
 
 # Инлайн клавиатура
@@ -11,13 +12,13 @@ get_url = InlineKeyboardButton(text='url_youtube', url='https://www.youtube.com/
 
 
 # callback but that notification
-@dp.callback_query_handler(text='push')
+# @dp.callback_query_handler(text='push')
 async def push(cbk: types.CallbackQuery):
     await cbk.answer('poshel v jopu izvrashenec')
 
 
 #callback but that message
-@dp.callback_query_handler(text='push_msg')
+# @dp.callback_query_handler(text='push_msg')
 async def push_message(cbk: types.CallbackQuery):
     await cbk.message.answer('ty odinok')
     # для того чтобы убрать знак загрузки
@@ -25,7 +26,7 @@ async def push_message(cbk: types.CallbackQuery):
 
 
 #callback but that alert, помещает в себя до 200 значений
-@dp.callback_query_handler(text='push_alert')
+# @dp.callback_query_handler(text='push_alert')
 async def alert(cbk: types.CallbackQuery):
     await cbk.answer('this alert',show_alert=True)
 
@@ -37,3 +38,8 @@ async def alert(cbk: types.CallbackQuery):
 
 inline_markup_properties.add(get_push, get_url).row(get_push_msg,get_push_alert)  # .add(*test)
 
+
+def register_inline_kb_handlers(dp:Dispatcher):
+    dp.register_callback_query_handler(push,text='push')
+    dp.register_callback_query_handler(push_message,text='push_msg')
+    dp.register_callback_query_handler(alert,text='push_alert')
