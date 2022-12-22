@@ -4,6 +4,7 @@ import time
 import random, csv, winsound
 
 
+
 def csv_create():
     with open('data.csv', 'w', encoding='utf-8') as file:
         writer = csv.writer(file)

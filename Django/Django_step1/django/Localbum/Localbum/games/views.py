@@ -41,5 +41,5 @@ def games(request):
 def example(request):
     return render(request, 'games/example.html')
 
-def TIAR(request):
-    return render(request,"games/ThreeInARow.html")
+def tiar(request):
+    return render(request,"games/three_in_row.html")
